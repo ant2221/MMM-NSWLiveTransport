@@ -18,23 +18,23 @@ Module.register("MMM-NSWLiveTransport", {
         fadePoint: 0.25, // Start on 1/4th of the list.
         initialLoadDelay: 0, // start delay seconds.
         apiBase: 'https://api.transport.nsw.gov.au/v1/tp/trip',     //API Reference found at https://opendata.transport.nsw.gov.au/dataset/trip-planner-apis
-        originID: '', //originID for start of journey. Find at https://transportnsw.info/stops  eg Town Hall Station = 10101101    &type_origin=any&name_origin=10101112 
-        destinationID: '', //destinationID for end of journey. Find at https://transportnsw.info/stops eg Town Hall Station = 10101101    &type_destination=any&name_destination=10101101
-        app_key: '', // TransportAPI App Key
-        limit: '5', //Maximum number of results to display                  
-        excludeTrains: false,             //Exclude Trains   
-        excludeLightRail: false,          //Exclude Bus
-        excludeBus: false,                //Exclude Bus
-        excludeCoach: false,              //Exclude Coach
-        excludeFerry: false,              //Exclude Ferry
-        excludeSchoolBus: false,          //Exclude School Bus
-        nextBuses: 'no', //Use NextBuses API calls
-        showRealTime: false, //expanded info when used with NextBuses
-        showDelay: false, //expanded info when used with NextBuses
-        showBearing: false, //show compass direction bearing on stop name
-        maxDelay: -60, //if a bus is delayed more than 60 minutes exclude it
-        debug: false,
-        walkTime: 15    //time taken to get to transport stop
+        originID: '',                       //originID for start of journey. Find at https://transportnsw.info/stops  eg Town Hall Station = 10101101    &type_origin=any&name_origin=10101112 
+        destinationID: '',                  //destinationID for end of journey. Find at https://transportnsw.info/stops eg Town Hall Station = 10101101    &type_destination=any&name_destination=10101101
+        app_key: '',                        //TransportAPI App Key
+        limit: '5',                         //Maximum number of results to display                  
+        excludeTrains: false,               //Exclude Trains   
+        excludeLightRail: false,            //Exclude Bus
+        excludeBus: false,                  //Exclude Bus
+        excludeCoach: false,                //Exclude Coach
+        excludeFerry: false,                //Exclude Ferry
+        excludeSchoolBus: false,            //Exclude School Bus
+        nextBuses: 'no',                    //Use NextBuses API calls
+        showRealTime: false,                //Expanded info when used with NextBuses
+        showDelay: false,                   //Expanded info when used with NextBuses
+        showBearing: false,                 //Show compass direction bearing on stop name
+        maxDelay: -60,                      //if a bus is delayed more than 60 minutes exclude it
+        debug: false,                       //For debuging code
+        walkTime: 15                        //time taken to get to transport stop
     },
 
     // Define required scripts.

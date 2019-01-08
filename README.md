@@ -2,7 +2,7 @@
 Additional Module for MagicMirror²  https://github.com/MichMich/MagicMirror
 
 # Module: NSWLiveTransport
-Magic Mirror Module for UK bus information. Returns real-time info about a SPECIFIC bus stop(s).
+Magic Mirror Module for UK bus information. Returns real-time info about a SPECIFIC transport stop(s).
 
 ![](images/Current_Version.png)
 
@@ -26,13 +26,13 @@ modules: [
 			position: 	'bottom_right',				// Position on Magic Mirror to be displayed
 			header:		'Town Hall',				// Header title for the module shown on screen
 			config: {
-				originID: 		'10101101', 		//locaion ID for start of journey. Find at https://transportnsw.info/stops
+				originID:		'10101101', 		//locaion ID for start of journey. Find at https://transportnsw.info/stops
 				destinationID:	'10101112',			//locaion ID for end of journey. Find at https://transportnsw.info/stops
-				app_key: 		'YOUR-API-KEY', 	// TransportAPI App Key from https://opendata.transport.nsw.gov.au/
-				limit: 			3, 					// Optional - Maximum results to display.
-      			nextBuses: 		'no',              	// Optional - Use expensive RealTime info from NextBuses
-      			showRealTime: 	false,          	// Optional - Show realtime departure info
-      			showDelay: 		false,              // Optional - Show delay in minutes based on Real Time info vs Timetable
+				app_key:		'YOUR-API-KEY', 	// TransportAPI App Key from https://opendata.transport.nsw.gov.au/
+				limit:			3, 					// Optional - Maximum results to display.
+      			nextBuses:		'no',              	// Optional - Use expensive RealTime info from NextBuses
+      			showRealTime:	false,          	// Optional - Show realtime departure info
+      			showDelay:		false,              // Optional - Show delay in minutes based on Real Time info vs Timetable
 				walkTime:		15					// Optional - How long it takes for you to walk to stop location
 			}
 		},

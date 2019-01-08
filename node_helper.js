@@ -1,8 +1,8 @@
-/* Live Bus Stop Info */
+/* Live Route Info */
 
 /* Magic Mirror
- * Module: UK Live Bus Stop Info
- * By Nick Wootton
+ * Module: NSW Live Transport Route Info
+ * By Ant Cole
  * MIT Licensed.
  */
 
@@ -11,12 +11,12 @@ var request = require('request');
 
 module.exports = NodeHelper.create({
     start: function() {
-        console.log('MMM-UKLiveBusStopInfo helper started ...');
+        console.log('NSWLiveTransport helper started ...');
     },
 
 
     /* getTimetable()
-     * Requests new data from TransportAPI.com
+     * Requests new data from https://transportnsw.info/
      * Sends data back via socket on succesfull response.
      */
     getTimetable: function(url, key) {
