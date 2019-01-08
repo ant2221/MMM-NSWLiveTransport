@@ -1,38 +1,40 @@
-/* Live Bus Stop Info */
+/* Live Transport Info in NSW Australia */
 
 /* Magic Mirror
- * Module: UK Live Bus Stop Info
+ * Module: NSW Live Transport
  *
- * By Nick Wootton
+ * based on UKLiveBussStopInfo module by Nick Wootton ...which was also...
  * based on SwissTransport module by Benjamin Angst http://www.beny.ch
  * MIT Licensed.
  */
 
-Module.register("MMM-UKLiveBusStopInfo", {
+Module.register("MMM-NSWLiveTransport", {
 
     // Define module defaults
     defaults: {
-        updateInterval: 5 * 60 * 1000, // Update every 5 minutes.
+        updateInterval: 1 * 60 * 1000, // Update every 1 minutes.
         animationSpeed: 2000,
         fade: true,
         fadePoint: 0.25, // Start on 1/4th of the list.
         initialLoadDelay: 0, // start delay seconds.
-
-        apiBase: 'https://transportapi.com/v3/uk/bus/stop/',
-
-        atcocode: '', // atcocode for bus stop
+        apiBase: 'https://api.transport.nsw.gov.au/v1/tp/trip',     //API Reference found at https://opendata.transport.nsw.gov.au/dataset/trip-planner-apis
+        originID: '', //originID for start of journey. Find at https://transportnsw.info/stops  eg Town Hall Station = 10101101    &type_origin=any&name_origin=10101112 
+        destinationID: '', //destinationID for end of journey. Find at https://transportnsw.info/stops eg Town Hall Station = 10101101    &type_destination=any&name_destination=10101101
         app_key: '', // TransportAPI App Key
-        app_id: '', // TransportAPI App ID
-        group: 'no', //Stops buses being grouped by route
-
-        limit: '', //Maximum number of results to display
-
+        limit: '5', //Maximum number of results to display                  
+        excludeTrains: false,             //Exclude Trains   
+        excludeLightRail: false,          //Exclude Bus
+        excludeBus: false,                //Exclude Bus
+        excludeCoach: false,              //Exclude Coach
+        excludeFerry: false,              //Exclude Ferry
+        excludeSchoolBus: false,          //Exclude School Bus
         nextBuses: 'no', //Use NextBuses API calls
         showRealTime: false, //expanded info when used with NextBuses
         showDelay: false, //expanded info when used with NextBuses
         showBearing: false, //show compass direction bearing on stop name
         maxDelay: -60, //if a bus is delayed more than 60 minutes exclude it
-        debug: false
+        debug: false,
+        walkTime: 15    //time taken to get to transport stop
     },
 
     // Define required scripts.
@@ -63,33 +65,41 @@ Module.register("MMM-UKLiveBusStopInfo", {
 
         this.updateTimer = null;
 
-        this.url = encodeURI(this.config.apiBase + this.config.atcocode + '/live.json' + this.getParams());
-
+        this.url = encodeURI(this.config.apiBase + this.getParams());
+        this.key = "apikey " + this.config.app_key;
         this.updateBusInfo(this);
     },
 
     // updateBusInfo IF module is visible (allows saving credits when using MMM-ModuleScheduler to hide the module)
     updateBusInfo: function(self) {
         if (this.hidden != true) {
-            self.sendSocketNotification('GET_BUSINFO', { 'url': self.url });
+            self.sendSocketNotification('GET_BUSINFO', { 'url': self.url, 'key': self.key});
         }
     },
+
+    //Solve Time Issue of only showing 1 digit
+    addZero: function(i) {
+        if (i < 10) {
+          i = "0" + i;
+        }
+        return i;
+        },
 
     // Override dom generator.
     getDom: function() {
         var wrapper = document.createElement("div");
 
-        if (this.config.atcocode === "") {
-            wrapper.innerHTML = "Please set the ATCO Code: " + this.atcocode + ".";
+        if (this.config.originID === "") {
+            wrapper.innerHTML = "Please set the start point originID: " + this.originID + ".";
             wrapper.className = "dimmed light small";
             return wrapper;
         }
 
-        if (this.config.app_id === "") {
-            wrapper.innerHTML = "Please set the application ID: " + this.app_id + ".";
+        if (this.config.destinationID === "") {
+            wrapper.innerHTML = "Please set the end point destinationID: " + this.destinationID + ".";
             wrapper.className = "dimmed light small";
             return wrapper;
-        }
+        } 
 
         if (this.config.app_key === "") {
             wrapper.innerHTML = "Please set the application key: " + this.app_key + ".";
@@ -112,6 +122,7 @@ Module.register("MMM-UKLiveBusStopInfo", {
             Log.info(this.buses);
         }
 
+        ////////////Build Table///////////////
         // *** Start Building Table
         var bustable = document.createElement("table");
         bustable.className = "small";
@@ -127,20 +138,33 @@ Module.register("MMM-UKLiveBusStopInfo", {
 
                 //Route name/Number
                 var routeCell = document.createElement("td");
-                routeCell.className = "route";
+                routeCell.className = "routeTrain"
+                if (bus.routeType == "Sydney Buses Network") {
+                    routeCell.className = "routeBus";
+                } else if (bus.routeType == "Sydney Trains Network") {
+                   routeCell.className = "routeTrain";
+                } else {
+                    routeCell.className = "routeOther";
+                }
                 routeCell.innerHTML = " " + bus.routeName + " ";
                 row.appendChild(routeCell);
 
-                //Direction Info
-                var directionCell = document.createElement("td");
-                directionCell.className = "dest";
-                directionCell.innerHTML = bus.direction;
-                row.appendChild(directionCell);
+                //extraInfo Info
+                var extraInfoCell = document.createElement("td");
+                extraInfoCell.className = "dest";
+                extraInfoCell.innerHTML = bus.extraInfo;
+                row.appendChild(extraInfoCell);
 
                 //Time Tabled Departure
                 var timeTabledCell = document.createElement("td");
-                timeTabledCell.innerHTML = bus.timetableDeparture;
-                timeTabledCell.className = "timeTabled";
+                timeTabledCell.innerHTML = bus.expectedDeparture;
+                //if(walkColour == "Green") {
+                //    timeTabledCell.className = "Green";
+                //} else if (walkColour == "Yellow") {
+                //    timeTabledCell.className = "Yellow";
+                //} else {
+                    timeTabledCell.className = bus.walkColour;
+                //}
                 row.appendChild(timeTabledCell);
 
                 if (this.config.showRealTime) {
@@ -253,20 +277,20 @@ Module.register("MMM-UKLiveBusStopInfo", {
                 stopName = data.stop_name + " (" + data.bearing + ")";
             } else {
                 //Default
-                stopName = "Departures";
+                stopName = this.config.header;
             }
             //Set value
             this.buses.stopName = stopName;
 
             //Check we have route info
-            if (typeof data.departures !== 'undefined' && data.departures !== null) {
+            if (typeof data.journeys !== 'undefined' && data.journeys !== null) {
 
                 //... and some departures
-                if (typeof data.departures.all !== 'undefined' && data.departures.all !== null) {
+                if (typeof data.journeys[0].legs !== 'undefined' && data.journeys[0].legs !== null) {
 
-                    if (data.departures.all.length > 0) {
+                    if (data.journeys.length > 0) {
                         //Figure out how long the results are
-                        var counter = data.departures.all.length;
+                        var counter = data.journeys.length;
 
                         //See if there are more results than requested and limit if necessary
                         if (counter > this.config.limit) {
@@ -276,12 +300,15 @@ Module.register("MMM-UKLiveBusStopInfo", {
                         //Loop over the results up to the max - either counter of returned
                         for (var i = 0; i < counter; i++) {
 
-                            var bus = data.departures.all[i];
+                            var bus = data.journeys[i]
                             var delay = null;
-
+                            var departureTimePlanned;
                             var thisDate;
                             var thisTimetableTime;
                             var thisLiveTime;
+                            var rType;
+                            var direction;
+                            var walkColor;
 
                             if (this.config.nextBuses.toLowerCase() === "yes") {
                                 //NextBuses Is On, so we need to use best & expected values - assuming they're present!
@@ -304,15 +331,22 @@ Module.register("MMM-UKLiveBusStopInfo", {
                             } else {
                                 //NextBuses Is Off, so we need to use aimed & expected values
                                 //Date
-                                thisDate = bus.date;
-                                //timetabled time
-                                if (bus.aimed_departure_time !== null) {
-                                    thisTimetableTime = bus.aimed_departure_time;
+                                //Planned Time
+                                p = new Date(bus.legs[0].origin.departureTimePlanned);                                   //UTC Standard "2019-01-06T06:49:00Z"                    
+                                thisDate = p.getFullYear() + "-" + this.addZero(p.getMonth() + 1) + "-" + this.addZero(p.getDay() + 1); //departureTimePlannedSplit[0]                                         //thisDate = "2019-01-06" PLANNED
+                                thisTimetableTime = this.addZero(p.getHours()) + ":" + this.addZero(p.getMinutes());                   //thisTimetableTime = "01:45" PLANNED
+
+                                //live (Estimated) time
+                                e = new Date(bus.legs[0].origin.departureTimeEstimated);                            //UTC thisLiveTime = "01:49" ESTIMATE
+                                thisLiveTime = this.addZero(e.getHours()) + ":" + this.addZero(e.getMinutes());     //thisLiveTime = "01:49" ESTIMATE
+                                timeToWalk = Math.round(((e - (new Date(Date.now()))) / 60) / 1000);
+                                if (timeToWalk < (this.config.walkTime - 1)) {
+                                    walkColor = "Red"
+                                } else if (timeToWalk < (this.config.walkTime + 3)) {
+                                    walkColor = "Yellow"
                                 } else {
-                                    thisTimetableTime = bus.expected_departure_time;
+                                    walkColor = "Green"
                                 }
-                                //live time
-                                thisLiveTime = bus.best_departure_estimate;
                             }
 
                             if (this.config.debug) {
@@ -339,15 +373,24 @@ Module.register("MMM-UKLiveBusStopInfo", {
 
                                 delay = (((TTDate - RTDate) / 1000) / 60);
                             }
+                            
+                            rType = bus.legs[0].transportation.product.name;
+                            if (rType == "Sydney Trains Network") {
+                                direction = bus.legs[0].origin.name.slice(-10)
+                            } else {
+                                direction = "in " + timeToWalk + "min"
+                            }
 
                             //Only push the info if the delay isn't excessive
                             if (delay > this.config.maxDelay) {
                                 this.buses.data.push({
-                                    routeName: bus.line_name,
-                                    direction: bus.direction,
+                                    routeName: bus.legs[0].transportation.disassembledName,
+                                    routeType: rType,
+                                    extraInfo: direction,
                                     timetableDeparture: thisTimetableTime,
                                     expectedDeparture: thisLiveTime,
-                                    delay: delay
+                                    delay: delay,
+                                    walkColour: walkColor
                                 });
                             }
                         }
@@ -399,13 +442,34 @@ Module.register("MMM-UKLiveBusStopInfo", {
      */
     getParams: function() {
         var params = "?";
-        params += "app_id=" + this.config.app_id;
-        params += "&app_key=" + this.config.app_key;
-        params += "&limit=" + this.config.limit;
-        params += "&group=" + this.config.group;
-        params += "&nextbuses=" + this.config.nextBuses.toLowerCase();
+        params += "outputFormat=rapidJSON&TfNSWTR=true&version=10.2.1.42&coordOutputFormat=false&excludedMeans=checkbox";
+        params += "&type_origin=any&name_origin=" + this.config.originID; 
+        params += "&type_destination=any&name_destination=" + this.config.destinationID; 
+        params += "&calcNumberOfTrips=" + this.config.limit;
+        if (this.config.excludeTrains) {
+            params += "&exclMOT_1=TURE";
+        }
+        if (this.config.excludeLightRail) {
+            params += "&exclMOT_3=TURE";
+        }
+        if (this.config.excludeBus) {
+            params += "&exclMOT_5=TURE";
+        }
+        if (this.config.excludeCoach) {
+            params += "&exclMOT_7=TURE";
+        }
+        if (this.config.excludeFerry) {
+            params += "&exclMOT_9=TURE";
+        }
+        if (this.config.excludeSchoolBus) {
+            params += "&exclMOT_11=TURE";
+        }
 
-        //Log.info(params);
+        if (this.config.debug) {
+            Log.info("=======Params=========");
+            Log.info(params);
+        }
+
         return params;
     },
 

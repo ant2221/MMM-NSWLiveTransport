@@ -19,11 +19,11 @@ module.exports = NodeHelper.create({
      * Requests new data from TransportAPI.com
      * Sends data back via socket on succesfull response.
      */
-    getTimetable: function(url) {
+    getTimetable: function(url, key) {
         var self = this;
         var retry = true;
 
-        request({ url: url, method: 'GET' }, function(error, response, body) {
+        request({ url: url, method: 'GET', headers: {'authorization': key} }, function(error, response, body) {
             if (!error && response.statusCode == 200) {
                 self.sendSocketNotification('BUS_DATA', { 'data': JSON.parse(body), 'url': url });
             }
@@ -33,7 +33,7 @@ module.exports = NodeHelper.create({
     //Subclass socketNotificationReceived received.
     socketNotificationReceived: function(notification, payload) {
         if (notification === 'GET_BUSINFO') {
-            this.getTimetable(payload.url);
+            this.getTimetable(payload.url, payload.key);
         }
     }
 

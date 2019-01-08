@@ -15,16 +15,39 @@
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 100;
 }
 
-.route {
+.routeBus {
   font-weight: bold;
   padding-right: 10px;
   text-align: left;
 }
 
-.route:before {
+.routeBus:before {
 	content: '\f207';
+	font-family: 'FontAwesome';
+}
+
+.routeTrain {
+  font-weight: bold;
+  padding-right: 10px;
+  text-align: left;
+}
+
+.routeTrain:before {
+	content: '\f238';
+	font-family: 'FontAwesome';
+}
+
+.routeOther {
+  font-weight: bold;
+  padding-right: 10px;
+  text-align: left;
+}
+
+.routeOther:before {
+	content: '\f0f2';
 	font-family: 'FontAwesome';
 }
 
@@ -51,3 +74,14 @@
   color: #999;
 }
 
+.Green {
+  color: #136b13;
+}
+
+.Yellow {
+  color: #b1a82d;
+}
+
+.Red {
+  color: #801f1f
+}
