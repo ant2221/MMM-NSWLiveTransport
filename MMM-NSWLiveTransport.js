@@ -18,8 +18,8 @@ Module.register("MMM-NSWLiveTransport", {
         fadePoint: 0.25, // Start on 1/4th of the list.
         initialLoadDelay: 0, // start delay seconds.
         apiBase: 'https://api.transport.nsw.gov.au/v1/tp/trip',     //API Reference found at https://opendata.transport.nsw.gov.au/dataset/trip-planner-apis
-        originID: '',                       //originID for start of journey. Find at https://transportnsw.info/stops  eg Town Hall Station = 10101101    &type_origin=any&name_origin=10101112 
-        destinationID: '',                  //destinationID for end of journey. Find at https://transportnsw.info/stops eg Town Hall Station = 10101101    &type_destination=any&name_destination=10101101
+        originID: '',                       //originID for start of journey. Find at https://transportnsw.info/stops or hover over stop on CityMapper map view  eg Town Hall Station = 10101101
+        destinationID: '',                  //destinationID for end of journey. Find at https://transportnsw.info/stops  or hover over stop on CityMapper map view eg Town Hall Station = 10101101
         app_key: '',                        //TransportAPI App Key
         limit: '5',                         //Maximum number of results to display                  
         excludeTrains: false,               //Exclude Trains   
@@ -33,8 +33,10 @@ Module.register("MMM-NSWLiveTransport", {
         showDelay: false,                   //Expanded info when used with NextBuses
         showBearing: false,                 //Show compass direction bearing on stop name
         maxDelay: -60,                      //if a bus is delayed more than 60 minutes exclude it
-        debug: false,                       //For debuging code
-        walkTime: 15                        //time taken to get to transport stop
+        debug: true,                       //For debuging code
+        runTime: 0,                         //Time Taken to run to stop from mirror location (Time in red before, then yellow)
+        walkTime: 0,                       //Time taken to walk to transport stop from mirror location (time in green after this)
+        delaySearch: 0                      //Not show any transport options for this many minutes
     },
 
     // Define required scripts.
@@ -65,9 +67,23 @@ Module.register("MMM-NSWLiveTransport", {
 
         this.updateTimer = null;
 
+        timeToSearch = new Date(Date.now() + (this.config.delaySearch * 60000));
+        //searchDay = timeToSearch.getFullYear() + "0" + (timeToSearch.getMonth() + 1) + "0" + (timeToSearch.getDate() + 1); //give time to start search as YYYYMMDD
+        searchDay = timeToSearch.getFullYear() + "" + this.addZero(timeToSearch.getMonth() + 1) + "" + this.addZero(timeToSearch.getDate()); //give time to start search as YYYYMMDD
+        searchTime = this.addZero(timeToSearch.getHours()) + "" + this.addZero(timeToSearch.getMinutes());  //give time to start search as HHMM
+
+
         this.url = encodeURI(this.config.apiBase + this.getParams());
         this.key = "apikey " + this.config.app_key;
         this.updateBusInfo(this);
+
+        if (this.config.debug) {
+            Log.info("=======URL=========");
+            Log.info(this.config.header);
+            Log.info(this.url);
+            Log.info("=======Returned=========");
+            Log.info(this.updateBusInfo(this));
+        }
     },
 
     // updateBusInfo IF module is visible (allows saving credits when using MMM-ModuleScheduler to hide the module)
@@ -143,6 +159,10 @@ Module.register("MMM-NSWLiveTransport", {
                     routeCell.className = "routeBus";
                 } else if (bus.routeType == "Sydney Trains Network") {
                    routeCell.className = "routeTrain";
+                } else if (bus.routeType == "Sydney Ferries Network") {
+                    routeCell.className = "routeFerry";
+                } else if (bus.routeType == "Sydney Light Rail Network") {
+                    routeCell.className = "routeLightRail";
                 } else {
                     routeCell.className = "routeOther";
                 }
@@ -333,16 +353,18 @@ Module.register("MMM-NSWLiveTransport", {
                                 //Date
                                 //Planned Time
                                 p = new Date(bus.legs[0].origin.departureTimePlanned);                                   //UTC Standard "2019-01-06T06:49:00Z"                    
-                                thisDate = p.getFullYear() + "-" + this.addZero(p.getMonth() + 1) + "-" + this.addZero(p.getDay() + 1); //departureTimePlannedSplit[0]                                         //thisDate = "2019-01-06" PLANNED
+                                thisDate = p.getFullYear() + "-" + this.addZero(p.getMonth() + 1) + "-" + this.addZero(p.getDate()); //departureTimePlannedSplit[0]                                         //thisDate = "2019-01-06" PLANNED
                                 thisTimetableTime = this.addZero(p.getHours()) + ":" + this.addZero(p.getMinutes());                   //thisTimetableTime = "01:45" PLANNED
 
                                 //live (Estimated) time
                                 e = new Date(bus.legs[0].origin.departureTimeEstimated);                            //UTC thisLiveTime = "01:49" ESTIMATE
                                 thisLiveTime = this.addZero(e.getHours()) + ":" + this.addZero(e.getMinutes());     //thisLiveTime = "01:49" ESTIMATE
                                 timeToWalk = Math.round(((e - (new Date(Date.now()))) / 60) / 1000);
-                                if (timeToWalk < (this.config.walkTime - 1)) {
+                                if (this.config.runTime == 0 && this.config.walkTime == 0) {
+                                    walkColor = "White"
+                                } else if (timeToWalk < (this.config.runTime)) {
                                     walkColor = "Red"
-                                } else if (timeToWalk < (this.config.walkTime + 3)) {
+                                } else if (timeToWalk < (this.config.walkTime)) {
                                     walkColor = "Yellow"
                                 } else {
                                     walkColor = "Green"
@@ -350,14 +372,12 @@ Module.register("MMM-NSWLiveTransport", {
                             }
 
                             if (this.config.debug) {
-                                Log.warn('===================================');
-                                Log.warn(this.config.nextBuses.toLowerCase());
-                                Log.warn(this.config.showDelay);
-                                Log.warn(bus);
-                                Log.warn(thisDate);
-                                Log.warn(thisTimetableTime);
-                                Log.warn(thisLiveTime);
-                                Log.warn('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+                                Log.warn('=========Delay Calculations=========');
+                                Log.warn(bus, thisDate, thisTimetableTime, thisLiveTime);
+                                //Log.warn(thisDate);
+                                //Log.warn(thisTimetableTime);
+                                //Log.warn(thisLiveTime);
+                                //Log.warn('^^^^^^^^^Delay Calculations^^^^^^^^^');
                             }
 
                             //Only do these calc if showDelay is set in the config
@@ -377,14 +397,26 @@ Module.register("MMM-NSWLiveTransport", {
                             rType = bus.legs[0].transportation.product.name;
                             if (rType == "Sydney Trains Network") {
                                 direction = bus.legs[0].origin.name.slice(-10)
-                            } else {
+                            } else if (bus.routeType == "Sydney Buses Network") {
                                 direction = "in " + timeToWalk + "min"
+                            } else if (bus.routeType == "Sydney Ferries Network") {
+                                direction = bus.legs[0].origin.name.slice(-7)
+                            } else if (bus.routeType == "Sydney Light Rail Network") {
+                                direction = "Light Rail"
+                            } else {
+                                direction = "alternate route"
+                            }
+
+                            if (bus.legs[0].transportation.disassembledName == null) {
+                                routeTitle = "Walk"
+                            } else {
+                                routeTitle = bus.legs[0].transportation.disassembledName
                             }
 
                             //Only push the info if the delay isn't excessive
                             if (delay > this.config.maxDelay) {
                                 this.buses.data.push({
-                                    routeName: bus.legs[0].transportation.disassembledName,
+                                    routeName: routeTitle,
                                     routeType: rType,
                                     extraInfo: direction,
                                     timetableDeparture: thisTimetableTime,
@@ -464,6 +496,9 @@ Module.register("MMM-NSWLiveTransport", {
         if (this.config.excludeSchoolBus) {
             params += "&exclMOT_11=TURE";
         }
+        params += "&itdDate=" + searchDay;
+        params += "&itdTime=" + searchTime;
+        
 
         if (this.config.debug) {
             Log.info("=======Params=========");
