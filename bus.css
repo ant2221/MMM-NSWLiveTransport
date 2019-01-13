@@ -40,6 +40,17 @@
 	font-family: 'FontAwesome';
 }
 
+.routeLightRail {
+  font-weight: bold;
+  padding-right: 10px;
+  text-align: left;
+}
+
+.routeLightRail:before {
+	content: '\f239';
+	font-family: 'FontAwesome';
+}
+
 .routeFerry {
   font-weight: bold;
   padding-right: 10px;
