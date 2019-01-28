@@ -67,12 +67,6 @@ Module.register("MMM-NSWLiveTransport", {
 
         this.updateTimer = null;
 
-        timeToSearch = new Date(Date.now() + (this.config.delaySearch * 60000));
-        //searchDay = timeToSearch.getFullYear() + "0" + (timeToSearch.getMonth() + 1) + "0" + (timeToSearch.getDate() + 1); //give time to start search as YYYYMMDD
-        searchDay = timeToSearch.getFullYear() + "" + this.addZero(timeToSearch.getMonth() + 1) + "" + this.addZero(timeToSearch.getDate()); //give time to start search as YYYYMMDD
-        searchTime = this.addZero(timeToSearch.getHours()) + "" + this.addZero(timeToSearch.getMinutes());  //give time to start search as HHMM
-
-
         this.url = encodeURI(this.config.apiBase + this.getParams());
         this.key = "apikey " + this.config.app_key;
         this.updateBusInfo(this);
@@ -473,6 +467,10 @@ Module.register("MMM-NSWLiveTransport", {
      * return String - URL params.
      */
     getParams: function() {
+        timeToSearch = new Date(Date.now() + (this.config.delaySearch * 60000));  //Update time to search for transport options
+        searchDay = timeToSearch.getFullYear() + "" + this.addZero(timeToSearch.getMonth() + 1) + "" + this.addZero(timeToSearch.getDate()); //give time to start search as YYYYMMDD
+        searchTime = this.addZero(timeToSearch.getHours()) + "" + this.addZero(timeToSearch.getMinutes());  //give time to start search as HHMM
+
         var params = "?";
         params += "outputFormat=rapidJSON&TfNSWTR=true&version=10.2.1.42&coordOutputFormat=false&excludedMeans=checkbox";
         params += "&type_origin=any&name_origin=" + this.config.originID; 
