@@ -6,7 +6,7 @@ Magic Mirror Module for UK bus information. Returns real-time info about a SPECI
 
 ![](images/Current_Version.png)
 
-## Using the module
+## Install the module
 
 Git clone from this repository into the modules sub-directory of the Magic Mirror installation, change directory into the newly cloned code and then run npm install.
 
@@ -16,6 +16,14 @@ git clone https://github.com/ant2221/MMM-NSWLiveTransport.git
 cd MMM-NSWLiveTransport
 npm install
 ```
+
+to update:
+
+'''Navigate to your module folder:
+§ cd ~/MagicMirror/modules/MMM-NSWLiveTransport
+use command to pull new git from:
+§ git pull
+'''
 
 To use this module, add it to the modules array in the `config/config.js` file:
 
