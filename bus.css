@@ -40,28 +40,6 @@
 	font-family: 'FontAwesome';
 }
 
-.routeLightRail {
-  font-weight: bold;
-  padding-right: 10px;
-  text-align: left;
-}
-
-.routeLightRail:before {
-	content: '\f239';
-	font-family: 'FontAwesome';
-}
-
-.routeFerry {
-  font-weight: bold;
-  padding-right: 10px;
-  text-align: left;
-}
-
-.routeFerry:before {
-	content: '\f21a';
-	font-family: 'FontAwesome';
-}
-
 .routeOther {
   font-weight: bold;
   padding-right: 10px;
@@ -69,7 +47,7 @@
 }
 
 .routeOther:before {
-	content: '\f554';
+	content: '\f0f2';
 	font-family: 'FontAwesome';
 }
 
@@ -96,7 +74,7 @@
   color: #999;
 }
 
-.Green {
+.White {
   color: #ffffff;
 }
 

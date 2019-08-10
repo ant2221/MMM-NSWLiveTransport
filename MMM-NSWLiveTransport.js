@@ -493,6 +493,12 @@ Module.register("MMM-NSWLiveTransport", {
         }
 
         var timeToSearch = new Date(Date.now() + (this.config.delaySearch * 60000));
+        //var timeToSearch= Date(Date.now()); // + (this.config.delaySearch * 60000));
+
+        if (this.config.debug) {
+            Log.info("=======Params=========");
+            Log.info(timeToSearch);
+        }
         var searchDay= timeToSearch.getFullYear() + "" + this.addZero(timeToSearch.getMonth() + 1) + "" + this.addZero(timeToSearch.getDate()), //give time to start search as YYYYMMDD
         searchTime= this.addZero(timeToSearch.getHours()) + "" + this.addZero(timeToSearch.getMinutes())  //give time to start search as HHMM
 

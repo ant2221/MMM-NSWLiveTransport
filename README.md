@@ -6,7 +6,7 @@ Magic Mirror Module for UK bus information. Returns real-time info about a SPECI
 
 ![](images/Current_Version.png)
 
-## Install the module
+## Using the module
 
 Git clone from this repository into the modules sub-directory of the Magic Mirror installation, change directory into the newly cloned code and then run npm install.
 
@@ -16,14 +16,6 @@ git clone https://github.com/ant2221/MMM-NSWLiveTransport.git
 cd MMM-NSWLiveTransport
 npm install
 ```
-
-to update:
-
-'''Navigate to your module folder:
-§ cd ~/MagicMirror/modules/MMM-NSWLiveTransport
-use command to pull new git from:
-§ git pull
-'''
 
 To use this module, add it to the modules array in the `config/config.js` file:
 
@@ -65,16 +57,14 @@ Your key then needs to be activated for **"Trip Planner APIs"** when creating th
 |`showRealTime`| depricated mode |
 |`showDelay`| depricated mode|
 |`showBearing`| Depricated? Boolean. Show compass direction/bearing of bus. <br><br>**Default:** false|
-|`runTime`| intiger. The running time to get to transit stop from magic mirror location. <br> displays departure time as red if it leaves too soon <br> Red < (now() + runTime) < Yellow < (now() + walkTime) < Green <br> If both runTime && walktime are set to 0, display time is white. <br><br>**Default:** 0|
-|`walkTime`| intiger. The walking time to get to transit stop from magic mirror location. <br> displays departure time as red if it leaves too soon <br> Red < (now() + runTime) < Yellow < (now() + walkTime) < Green <br> If both runTime && walktime are set to 0, display time is white.  <br><br>**Default:** 0|
-|`delaySearch`| intiger. any departures within this many minutes are not include within the results list. Useful when a few transport options may leave within the walkTime period. <br/><br>**Default:** 0|
-|`excludeTrains`| boolian. Exclude Trains from search result <br/><br>**Default:** false|
-|`excludeLightRail`| boolian. Exclude Light Rail from search result <br/><br>**Default:** false|
-|`excludeBus`| boolian. Exclude Bus from search result <br/><br>**Default:** false|
-|`excludeCoach`| boolian. Exclude Coach from search result <br/><br>**Default:** false|
-|`excludeFerry`| boolian. Exclude Ferry from search result <br/><br>**Default:** false|
-|`excludeSchoolBus`| boolian. Exclude School Bus from search result <br/><br>**Default:** false|
-|`animationSpeed`| intiger. How quick the refresh animation takes in ms <br/><br>**Default:** 2000|
+|`walkTime`| intiger. How many minutes it takes for you to get to the stop. Changes the colours of the arrival time based on if you will make it in time. <br> Red < walkTime -1 < Yellow < walkTime +3 < Green <br><br>**Default:** 15|
+|`excludeTrains`| Exclude Trains from search result <br/><br>**Default:** false|
+|`excludeLightRail`| Exclude Bus from search result <br/><br>**Default:** false|
+|`excludeBus`| Exclude Bus from search result <br/><br>**Default:** false|
+|`excludeCoach`| Exclude Coach from search result <br/><br>**Default:** false|
+|`excludeFerry`| Exclude Ferry from search result <br/><br>**Default:** false|
+|`excludeSchoolBus`| Exclude School Bus from search result <br/><br>**Default:** false|
+|`animationSpeed`| How quick the refresh animation takes in ms <br/><br>**Default:** 2000|
 
 
 ## Notes ##
