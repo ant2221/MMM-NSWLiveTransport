@@ -36,7 +36,8 @@ Module.register("MMM-NSWLiveTransport", {
         debug: false,                       //For debuging code
         runTime: 0,                         //Time Taken to run to stop from mirror location (Time in red before, then yellow)
         walkTime: 0,                       //Time taken to walk to transport stop from mirror location (time in green after this)
-        delaySearch: 0                      //Not show any transport options for this many minutes
+        delaySearch: 0,                      //Not show any transport options for this many minutes
+        timeToSearch: 0,
     },
 
     // Define required scripts.
@@ -67,6 +68,8 @@ Module.register("MMM-NSWLiveTransport", {
 
         this.updateTimer = null;
 
+        this.url = encodeURI(this.config.apiBase + this.getParams());
+        this.key = "apikey " + this.config.app_key;
         this.updateBusInfo(this);
 
         if (this.config.debug) {
@@ -81,8 +84,6 @@ Module.register("MMM-NSWLiveTransport", {
     // updateBusInfo IF module is visible (allows saving credits when using MMM-ModuleScheduler to hide the module)
     updateBusInfo: function(self) {
         if (this.hidden != true) {
-            this.url = encodeURI(this.config.apiBase + this.getParams());
-            this.key = "apikey " + this.config.app_key;
             self.sendSocketNotification('GET_BUSINFO', { 'url': self.url, 'key': self.key});
         }
     },
@@ -462,29 +463,11 @@ Module.register("MMM-NSWLiveTransport", {
         this.updateDom(this.config.animationSpeed);
     },
 
-    getSearchTime: function() {
-        var timeToSearch = new Date(Date.now() + (this.config.delaySearch * 60000));  //Update time to search for transport options
-        return timeToSearch;
-    },
-
-    getTime: function() {
-        timeToSearch = this.getSearchTime();
-        var searchTime = this.addZero(timeToSearch.getHours()) + "" + this.addZero(timeToSearch.getMinutes());  //give time to start search as HHMM
-        return searchTime;
-    },
-
-    getDay: function() {
-        timeToSearch = this.getSearchTime();
-        var searchDay = timeToSearch.getFullYear() + "" + this.addZero(timeToSearch.getMonth() + 1) + "" + this.addZero(timeToSearch.getDate()); //give time to start search as YYYYMMDD
-        return searchDay;
-    },
-
     /* getParams()
      * Generates an url with api parameters based on the config.
      * return String - URL params.
      */
     getParams: function() {
-
         var params = "?";
         params += "outputFormat=rapidJSON&TfNSWTR=true&version=10.2.1.42&coordOutputFormat=false&excludedMeans=checkbox";
         params += "&type_origin=any&name_origin=" + this.config.originID; 
@@ -508,13 +491,18 @@ Module.register("MMM-NSWLiveTransport", {
         if (this.config.excludeSchoolBus) {
             params += "&exclMOT_11=TURE";
         }
-        params += "&itdDate=" + this.getDay();
-        params += "&itdTime=" + this.getTime();
+
+        var timeToSearch = new Date(Date.now() + (this.config.delaySearch * 60000));
+        var searchDay= timeToSearch.getFullYear() + "" + this.addZero(timeToSearch.getMonth() + 1) + "" + this.addZero(timeToSearch.getDate()), //give time to start search as YYYYMMDD
+        searchTime= this.addZero(timeToSearch.getHours()) + "" + this.addZero(timeToSearch.getMinutes())  //give time to start search as HHMM
+
+        params += "&itdDate=" + searchDay;
+        params += "&itdTime=" + searchTime;
         
 
         if (this.config.debug) {
-            Log.warn("=======Params=========");
-            Log.warn(params);
+            Log.info("=======Params=========");
+            Log.info(params);
         }
 
         return params;
@@ -542,6 +530,19 @@ Module.register("MMM-NSWLiveTransport", {
     socketNotificationReceived: function(notification, payload) {
 
         if (notification === 'BUS_DATA' && payload.url === this.url) {
+
+            //update exsisting api details with new timings
+            this.buses = {};
+            this.loaded = false;
+            this.scheduleUpdate(this.config.initialLoadDelay);
+    
+            this.updateTimer = null;
+    
+            this.url = encodeURI(this.config.apiBase + this.getParams());
+            this.key = "apikey " + this.config.app_key;
+            this.updateBusInfo(this);
+
+            //process data returned 
             this.processBuses(payload.data);
             this.scheduleUpdate(this.config.updateInterval);
         }
